@@ -11,6 +11,14 @@ import tempfile
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Replace "*" with specific domains in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # ENV VARS
 GCP_BUCKET_NAME = os.getenv("GCP_BUCKET_NAME", "storry-teller-app-bucket")
 STABILITY_API_KEY = os.getenv("STABILITY_API_KEY")
@@ -90,3 +98,7 @@ async def generate_and_upload_image(prompt: str):
 @app.get("/health") 
 async def health_check():
     return {"status": "ok"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8080)
