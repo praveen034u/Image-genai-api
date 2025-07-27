@@ -32,19 +32,17 @@ jobs:
         service_account_key: ${{ secrets.GCP_SA_KEY }}
         export_default_credentials: true
 
-    - name: Save GCP SA Key to File
-      run: |
-        echo "${{ secrets.GCP_SA_KEY }}" > gcp-sa-key.json
-
     - name: Ensure Secret Exists in Secret Manager
       run: |
         if ! gcloud secrets describe $SECRET_NAME --project=$PROJECT_ID; then
           gcloud secrets create $SECRET_NAME --replication-policy=automatic --project=$PROJECT_ID
         fi
 
-    - name: Add New Secret Version
+    - name: Authenticate with Google Cloud using GitHub Secret
       run: |
-        gcloud secrets versions add $SECRET_NAME --data-file=gcp-sa-key.json --project=$PROJECT_ID
+        echo "${{ secrets.GCP_SA_KEY_JSON }}" > $HOME/gcp-key.json
+        gcloud auth activate-service-account --key-file=$HOME/gcp-key.json
+        gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
 
 
     # ✅ Authenticate Docker with Artifact Registry
@@ -69,5 +67,6 @@ jobs:
           --region ${{ secrets.REGION }} \
           --platform managed \
           --allow-unauthenticated \
-          --set-env-vars "GCP_SA_KEY=projects/$PROJECT_ID/secrets/$SECRET_NAME/versions/latest,GCP_BUCKET_NAME=${{secrets.GCP_BUCKET_NAME}},STABILITY_API_KEY=${{ secrets.STABILITY_API_KEY }}" \
+          --set-secrets=GCP_SA_KEY=GCP_SA_KEY:latest \
+          --set-env-vars "GCP_BUCKET_NAME=${{secrets.GCP_BUCKET_NAME}},STABILITY_API_KEY=${{ secrets.STABILITY_API_KEY }}" \
           --timeout=900s
