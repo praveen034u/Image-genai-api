@@ -31,8 +31,8 @@ if not GCS_BUCKET_NAME:
 if not STABILITY_API_KEY:
     raise ValueError("STABILITY_API_KEY environment variable is not set.")  
 # Ensure the credentials file exists        
-if GCS_CREDENTIALS_JSON:
-     raise ValueError(f"GCS_CREDENTIALS_JSON file does not exist: {GCS_CREDENTIALS_JSON}")     
+#if GCS_CREDENTIALS_JSON and not os.path.exists(GCS_CREDENTIALS_JSON):
+#   raise ValueError(f"GCS_CREDENTIALS_JSON file does not exist: {GCS_CREDENTIALS_JSON}")
     
 # Upload image bytes to GCS and return signed URL
 def upload_image_to_gcs(image_bytes: bytes, filename: str) -> str:
@@ -88,3 +88,7 @@ async def generate_and_upload_image(prompt: str):
         return JSONResponse({"url": image_url})
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error: {e}")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8080)
