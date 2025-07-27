@@ -72,5 +72,3 @@ jobs:
           --set-env-vars "GCP_BUCKET_NAME=${{secrets.GCP_BUCKET_NAME}},STABILITY_API_KEY=${{ secrets.STABILITY_API_KEY }}" \
           --timeout=900s
 
-    - name: Clean up
-      run: rm -f gcp-key.json
