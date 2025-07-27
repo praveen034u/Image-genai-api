@@ -8,16 +8,13 @@ import uuid
 import requests
 import json
 import tempfile
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logging.info("Starting FastAPI app")
 
 app = FastAPI()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Replace "*" with specific domains in production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # ENV VARS
 GCP_BUCKET_NAME = os.getenv("GCP_BUCKET_NAME", "storry-teller-app-bucket")
