@@ -1,0 +1,78 @@
+#!/bin/bash
+
+# ==== CONFIGURATION ====
+export GCP_PROJECT_ID="storytelling-app-467105"
+export REGION="us-central1"
+export GCP_REPO="image-genai-api-repo"
+export IMAGE_NAME="image-genai-api"
+export SERVICE_NAME="image-genai-api"
+export GIT_REPO="praveen034u/image-genai-api"  
+export DEPLOYER_SA="github-actions-deployer@$GCP_PROJECT_ID.iam.gserviceaccount.com"
+export COMPUTE_SA="$(gcloud projects describe $GCP_PROJECT_ID --format='value(projectNumber)')-compute@developer.gserviceaccount.com"
+export GIT_REPO="praveen034u/image-genai-api"  
+
+# ==== SET PROJECT EXPLICITLY ====
+echo "Setting GCP project..."
+gcloud config set project $GCP_PROJECT_ID
+
+
+# Enable APIs:
+gcloud services enable run.googleapis.com artifactregistry.googleapis.com aiplatform.googleapis.com
+
+## create repository, run below command in google cloud shell
+gcloud artifacts repositories create $GCP_REPO --repository-format=docker --location=$REGION --description="Docker repository for Image GenAI API"
+
+# ==== CREATE SERVICE ACCOUNT ====
+echo "Creating service account..."
+gcloud iam service-accounts create github-actions-deployer \
+  --display-name "GitHub Actions Deployer" \
+  --project=$GCP_PROJECT_ID  
+
+# Add a delay here
+echo "Waiting for service account to be created..."
+sleep 10  # Wait for 10 seconds (adjust as needed)
+
+# ==== GRANT ROLES ====
+echo "Granting IAM roles..."
+gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
+  --member="serviceAccount:gcs-uploader@storytelling-app-467105.iam.gserviceaccount.com" \
+  --role="roles/run.admin"
+
+gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
+  --member="serviceAccount:gcs-uploader@storytelling-app-467105.iam.gserviceaccount.com" \
+  --role="roles/artifactregistry.writer"
+
+gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
+  --member="serviceAccount:gcs-uploader@storytelling-app-467105.iam.gserviceaccount.com" \
+  --role="roles/aiplatform.user"
+
+  gcloud iam service-accounts add-iam-policy-binding 41368094823-compute@developer.gserviceaccount.com \
+  --member="serviceAccount:gcs-uploader@storytelling-app-467105.iam.gserviceaccount.com" \
+  --role="roles/iam.serviceAccountUser"
+
+# ==== GENERATE KEY ====
+echo "Creating service account key..."
+gcloud iam service-accounts keys create key.json \
+  --iam-account=github-actions-deployer@$GCP_PROJECT_ID.iam.gserviceaccount.com \
+  --project=$GCP_PROJECT_ID # Explicitly specify the project
+
+GCP_SA_KEY=$(base64 -w 0 key.json)
+
+# ==== AUTHENTICATE GITHUB CLI ====
+echo "Authenticating GitHub CLI..."
+gh auth login --web
+gh repo set-default $GIT_REPO
+
+# ==== SET GITHUB SECRETS ====
+echo "Setting GitHub secrets..."
+gh secret set GCP_PROJECT_ID --body "$GCP_PROJECT_ID"
+gh secret set REGION --body "$REGION"
+gh secret set GCP_REPO --body "$GCP_REPO"
+gh secret set IMAGE_NAME --body "$IMAGE_NAME"
+gh secret set SERVICE_NAME --body "$SERVICE_NAME"
+gh secret set GCP_SA_KEY --body "$GCP_SA_KEY"
+
+# ==== CLEANUP ====
+rm key.json
+
+echo "✅ GitHub Actions secrets configured successfully!"

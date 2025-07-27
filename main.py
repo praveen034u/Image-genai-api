@@ -16,14 +16,24 @@ import requests
 
 app = FastAPI()
 
-# Environment variables (or load securely)
-GCS_BUCKET_NAME = "storry-teller-app-bucket"
-GCS_CREDENTIALS_JSON = "storytelling-app-gkey.json"
-STABILITY_API_KEY = "sk-BoycXa1AoUjT8HsqF277xOCZXfbtKLbzGOEQEYlQ58mjULxY"
+# fOR RUNNING IN LOCAL USE DEFAULT Environment variables (or load securely)
+GCS_BUCKET_NAME = os.getenv("GCS_BUCKET_NAME", "storry-teller-app-bucket")
+GCS_CREDENTIALS_JSON = os.getenv("GCS_SA_KEY", "storytelling-app-gkey.json")
+STABILITY_API_KEY = os.getenv("STABILITY_API_KEY", "sk-BoycXa1AoUjT8HsqF277xOCZXfbtKLbzGOEQEYlQ58mjULxY")   
 
-# Set credentials for Google Cloud Storage
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GCS_CREDENTIALS_JSON
-
+# Set Google Cloud credentials
+if GCS_CREDENTIALS_JSON:
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GCS_CREDENTIALS_JSON     
+# Ensure the bucket name is set
+if not GCS_BUCKET_NAME:
+    raise ValueError("GCS_BUCKET_NAME environment variable is not set.")    
+# Ensure the Stability API key is set
+if not STABILITY_API_KEY:
+    raise ValueError("STABILITY_API_KEY environment variable is not set.")  
+# Ensure the credentials file exists        
+if GCS_CREDENTIALS_JSON:
+     raise ValueError(f"GCS_CREDENTIALS_JSON file does not exist: {GCS_CREDENTIALS_JSON}")     
+    
 # Upload image bytes to GCS and return signed URL
 def upload_image_to_gcs(image_bytes: bytes, filename: str) -> str:
     try:

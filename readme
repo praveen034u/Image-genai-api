@@ -1,0 +1,6 @@
+GCP_PROJECT_ID="storytelling-app-467105"
+REGION="us-central1"
+GCP_REPO="image-genai-api-repo"
+IMAGE_NAME="image-genai-api"
+SERVICE_NAME="image-genai-api"
+GIT_REPO="praveen034u/image-genai-api"  
