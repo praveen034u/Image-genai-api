@@ -25,9 +25,9 @@ GCP_SA_KEY = os.getenv("GCP_SA_KEY")
 
 if GCP_SA_KEY:
     try:
-        # Write JSON credentials to a temp file if not already running inside Cloud Run
+        json_data = base64.b64decode(GCP_SA_KEY).decode()
         with tempfile.NamedTemporaryFile(mode="w+", delete=False, suffix=".json") as temp_key_file:
-            temp_key_file.write(GCP_SA_KEY if GCP_SA_KEY.strip().startswith('{') else base64.b64decode(GCP_SA_KEY).decode())
+            temp_key_file.write(json_data)
             temp_key_file.flush()
             os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = temp_key_file.name
     except Exception as e:
