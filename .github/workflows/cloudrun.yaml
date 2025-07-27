@@ -48,5 +48,6 @@ jobs:
           --region ${{ secrets.REGION }} \
           --platform managed \
           --allow-unauthenticated \
-          --set-env-vars=GCP_BUCKET_NAME=${{ secrets.GCP_BUCKET_NAME }},STABILITY_API_KEY=${{ secrets.STABILITY_API_KEY }},GCP_SA_KEY={{ secrets.GCP_SA_KEY }} \
+          --set-env-vars=GCP_BUCKET_NAME=${{ secrets.GCP_BUCKET_NAME }},STABILITY_API_KEY=${{ secrets.STABILITY_API_KEY }} \
+          --set-secrets=GCS_SA_KEY=GCP_SA_KEY:latest \
           --timeout=900s

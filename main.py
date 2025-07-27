@@ -1,10 +1,3 @@
-# requirements.txt (install these)
-# fastapi
-# uvicorn
-# google-cloud-storage
-# requests
-# python-multipart
-
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from google.cloud import storage
@@ -13,28 +6,35 @@ import os
 import base64
 import uuid
 import requests
+import json
+import tempfile
 
 app = FastAPI()
 
-# fOR RUNNING IN LOCAL USE DEFAULT Environment variables (or load securely)
+# ENV VARS
 GCP_BUCKET_NAME = os.getenv("GCP_BUCKET_NAME", "storry-teller-app-bucket")
-GCP_CREDENTIALS_JSON = os.getenv("GCP_SA_KEY", "storytelling-app-gkey.json")
-STABILITY_API_KEY = os.getenv("STABILITY_API_KEY", "sk-BoycXa1AoUjT8HsqF277xOCZXfbtKLbzGOEQEYlQ58mjULxY")   
+STABILITY_API_KEY = os.getenv("STABILITY_API_KEY")
 
-# Set Google Cloud credentials
-if GCP_CREDENTIALS_JSON:
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GCP_CREDENTIALS_JSON     
-# Ensure the bucket name is set
+# ✅ Dynamically set credentials from env variable (base64-encoded JSON or raw JSON)
+GCP_SA_KEY = os.getenv("GCP_SA_KEY")
+
+if GCP_SA_KEY:
+    try:
+        # Write JSON credentials to a temp file if not already running inside Cloud Run
+        with tempfile.NamedTemporaryFile(mode="w+", delete=False, suffix=".json") as temp_key_file:
+            temp_key_file.write(GCP_SA_KEY if GCP_SA_KEY.strip().startswith('{') else base64.b64decode(GCP_SA_KEY).decode())
+            temp_key_file.flush()
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = temp_key_file.name
+    except Exception as e:
+        raise RuntimeError(f"Failed to configure service account key from env: {e}")
+
+# Validate env vars
 if not GCP_BUCKET_NAME:
-    raise ValueError("GCS_BUCKET_NAME environment variable is not set.")    
-# Ensure the Stability API key is set
+    raise ValueError("GCP_BUCKET_NAME environment variable is not set.")
 if not STABILITY_API_KEY:
-    raise ValueError("STABILITY_API_KEY environment variable is not set.")  
-# Ensure the credentials file exists        
-#if GCS_CREDENTIALS_JSON and not os.path.exists(GCS_CREDENTIALS_JSON):
-#   raise ValueError(f"GCS_CREDENTIALS_JSON file does not exist: {GCS_CREDENTIALS_JSON}")
-    
-# Upload image bytes to GCS and return signed URL
+    raise ValueError("STABILITY_API_KEY environment variable is not set.")
+
+# 📤 Upload image bytes to GCS and return signed URL
 def upload_image_to_gcs(image_bytes: bytes, filename: str) -> str:
     try:
         client = storage.Client()
@@ -42,7 +42,6 @@ def upload_image_to_gcs(image_bytes: bytes, filename: str) -> str:
         blob = bucket.blob(filename)
         blob.upload_from_string(image_bytes, content_type="image/png")
 
-        # Generate a signed URL valid for 15 minutes
         signed_url = blob.generate_signed_url(
             version="v4",
             expiration=timedelta(minutes=15),
@@ -52,15 +51,13 @@ def upload_image_to_gcs(image_bytes: bytes, filename: str) -> str:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"GCS upload failed: {e}")
 
-# Call Stability API and return image bytes
+# 🎨 Call Stability API
 def generate_image(prompt: str) -> bytes:
     url = "https://api.stability.ai/v2beta/stable-image/generate/core"
-
     headers = {
         "Authorization": f"Bearer {STABILITY_API_KEY}",
         "Accept": "application/json"
     }
-
     files = {
         "prompt": (None, prompt),
         "mode": (None, "text-to-image"),
@@ -78,7 +75,7 @@ def generate_image(prompt: str) -> bytes:
 
     return base64.b64decode(image_base64)
 
-# FastAPI endpoint
+# 🚀 FastAPI endpoint
 @app.post("/generate-image")
 async def generate_and_upload_image(prompt: str):
     try:

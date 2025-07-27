@@ -50,6 +50,10 @@ gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
   --member="serviceAccount:gcs-uploader@storytelling-app-467105.iam.gserviceaccount.com" \
   --role="roles/iam.serviceAccountUser"
 
+gcloud secrets add-iam-policy-binding 41368094823-compute@developer.gserviceaccount.com \
+  --member="serviceAccount:gcs-uploader@storytelling-app-467105.iam.gserviceaccount.com" \
+  --role="roles/secretmanager.secretAccessor"
+
 # ==== GENERATE KEY ====
 echo "Creating service account key..."
 gcloud iam service-accounts keys create key.json \
