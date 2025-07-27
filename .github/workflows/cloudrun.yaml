@@ -40,7 +40,7 @@ jobs:
 
     - name: Authenticate with Google Cloud using GitHub Secret
       run: |
-        echo '${{ secrets.GCP_SA_KEY }}' > gcp-key.json
+        echo "${{ secrets.GCP_SA_KEY_BASE64 }}" | base64 -d > gcp-key.json
         gcloud auth activate-service-account --key-file=gcp-key.json
         gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
 
@@ -70,3 +70,6 @@ jobs:
           --set-secrets=GCP_SA_KEY=GCP_SA_KEY:latest \
           --set-env-vars "GCP_BUCKET_NAME=${{secrets.GCP_BUCKET_NAME}},STABILITY_API_KEY=${{ secrets.STABILITY_API_KEY }}" \
           --timeout=900s
+
+    - name: Clean up
+      run: rm -f gcp-key.json
