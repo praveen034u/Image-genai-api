@@ -85,7 +85,8 @@ async def generate_and_upload_image(prompt: str):
         return JSONResponse({"url": image_url})
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error: {e}")
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8080)
+    
+# Health check endpoint
+@app.get("/health") 
+async def health_check():
+    return {"status": "ok"}
