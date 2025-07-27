@@ -55,8 +55,17 @@ gcloud secrets create GCP_SA_KEY --replication-policy="automatic"
 gcloud secrets versions add GCP_SA_KEY --data-file="path/to/your-service-account-key.json"
 
 gcloud secrets add-iam-policy-binding GCP_SA_KEY \
+  --member="serviceAccount:41368094823-compute@developer.gserviceaccount.com" \
+  --role="roles/secretmanager.secretAccessor" \
+  --project=storytelling-app-467105
+  
+gcloud projects add-iam-policy-binding storytelling-app-467105 \
   --member="serviceAccount:gcs-uploader@storytelling-app-467105.iam.gserviceaccount.com" \
-  --role="roles/secretmanager.secretAccessor"
+  --role="roles/secretmanager.admin"
+
+gcloud projects add-iam-policy-binding storytelling-app-467105 \
+  --member="serviceAccount:gcs-uploader@storytelling-app-467105.iam.gserviceaccount.com" \
+  --role="roles/iam.securityAdmin"
 
 # ==== GENERATE KEY ====
 echo "Creating service account key..."
