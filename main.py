@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from google.cloud import storage
+from google.oauth2 import service_account
 from datetime import timedelta
 import os
 import base64
