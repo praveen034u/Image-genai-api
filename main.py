@@ -90,3 +90,8 @@ async def generate_and_upload_image(prompt: str):
 @app.get("/health") 
 async def health_check():
     return {"status": "ok"}
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.getenv("PORT", 8080))  # <-- Read Cloud Run's PORT env var
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
