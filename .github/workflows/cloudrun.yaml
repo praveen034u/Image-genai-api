@@ -5,6 +5,10 @@ on:
     branches:
       - main  # Change if your default branch is 'master'
 
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  SECRET_NAME: GCP_SA_KEY
+  
 jobs:
   build-and-deploy:
     name: Build and Deploy to Google Cloud Run
