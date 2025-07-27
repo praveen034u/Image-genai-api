@@ -29,15 +29,28 @@ if not GCP_BUCKET_NAME:
 if not STABILITY_API_KEY:
     raise ValueError("STABILITY_API_KEY environment variable is not set.")
 
+def get_gcp_credentials():
+    try:
+        key_data = (
+            GCP_SA_KEY if GCP_SA_KEY.strip().startswith("{")
+            else base64.b64decode(GCP_SA_KEY).decode("utf-8")
+        )
+        creds_dict = json.loads(key_data)
+        return service_account.Credentials.from_service_account_info(creds_dict)
+    except Exception as e:
+        raise RuntimeError(f"Invalid GCP_SA_KEY format: {e}")
+        
 # 📤 Upload image bytes to GCS and return signed URL
 def upload_image_to_gcs(image_bytes: bytes, filename: str) -> str:
     try:
-        client = storage.Client()
+        credentials = get_gcp_credentials()
+        client = storage.Client(credentials=credentials)
         bucket = client.bucket(GCP_BUCKET_NAME)
         blob = bucket.blob(filename)
         blob.upload_from_string(image_bytes, content_type="image/png")
 
         signed_url = blob.generate_signed_url(
+            credentials=credentials,
             version="v4",
             expiration=timedelta(minutes=15),
             method="GET"
