@@ -21,7 +21,7 @@ GCP_BUCKET_NAME = os.getenv("GCP_BUCKET_NAME", "storry-teller-app-bucket")
 STABILITY_API_KEY = os.getenv("STABILITY_API_KEY")
 
 # ✅ Dynamically set credentials from env variable (base64-encoded JSON or raw JSON)
-GCP_SA_KEY = os.getenv("GCP_SA_KEY")
+GCP_SA_KEY = os.getenv("GCP_SA_KEY_BASE64")
 
 # Validate env vars
 if not GCP_BUCKET_NAME:
