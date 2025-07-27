@@ -23,16 +23,6 @@ STABILITY_API_KEY = os.getenv("STABILITY_API_KEY")
 # ✅ Dynamically set credentials from env variable (base64-encoded JSON or raw JSON)
 GCP_SA_KEY = os.getenv("GCP_SA_KEY")
 
-if GCP_SA_KEY:
-    try:
-        json_data = base64.b64decode(GCP_SA_KEY).decode()
-        with tempfile.NamedTemporaryFile(mode="w+", delete=False, suffix=".json") as temp_key_file:
-            temp_key_file.write(json_data)
-            temp_key_file.flush()
-            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = temp_key_file.name
-    except Exception as e:
-        raise RuntimeError(f"Failed to configure service account key from env: {e}")
-
 # Validate env vars
 if not GCP_BUCKET_NAME:
     raise ValueError("GCP_BUCKET_NAME environment variable is not set.")
