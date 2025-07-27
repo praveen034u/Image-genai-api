@@ -17,15 +17,15 @@ import requests
 app = FastAPI()
 
 # fOR RUNNING IN LOCAL USE DEFAULT Environment variables (or load securely)
-GCS_BUCKET_NAME = os.getenv("GCS_BUCKET_NAME", "storry-teller-app-bucket")
-GCS_CREDENTIALS_JSON = os.getenv("GCS_SA_KEY", "storytelling-app-gkey.json")
+GCP_BUCKET_NAME = os.getenv("GCP_BUCKET_NAME", "storry-teller-app-bucket")
+GCP_CREDENTIALS_JSON = os.getenv("GCP_SA_KEY", "storytelling-app-gkey.json")
 STABILITY_API_KEY = os.getenv("STABILITY_API_KEY", "sk-BoycXa1AoUjT8HsqF277xOCZXfbtKLbzGOEQEYlQ58mjULxY")   
 
 # Set Google Cloud credentials
-if GCS_CREDENTIALS_JSON:
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GCS_CREDENTIALS_JSON     
+if GCP_CREDENTIALS_JSON:
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GCP_CREDENTIALS_JSON     
 # Ensure the bucket name is set
-if not GCS_BUCKET_NAME:
+if not GCP_BUCKET_NAME:
     raise ValueError("GCS_BUCKET_NAME environment variable is not set.")    
 # Ensure the Stability API key is set
 if not STABILITY_API_KEY:
@@ -38,7 +38,7 @@ if not STABILITY_API_KEY:
 def upload_image_to_gcs(image_bytes: bytes, filename: str) -> str:
     try:
         client = storage.Client()
-        bucket = client.bucket(GCS_BUCKET_NAME)
+        bucket = client.bucket(GCP_BUCKET_NAME)
         blob = bucket.blob(filename)
         blob.upload_from_string(image_bytes, content_type="image/png")
 
