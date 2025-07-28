@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from google.cloud import storage
 from google.oauth2 import service_account
 from datetime import timedelta
+from fastapi.middleware.cors import CORSMiddleware
 import os
 import base64
 import uuid
@@ -16,6 +17,13 @@ logging.info("Starting FastAPI app")
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Replace * with your frontend URL for production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ENV VARS
 GCP_BUCKET_NAME = os.getenv("GCP_BUCKET_NAME", "storry-teller-app-bucket")
